@@ -9,15 +9,21 @@
 #ifndef file_struct_h
 #define file_struct_h
 
+typedef struct File {
+    char* file_name;
+    char* file_path;
+    long long file_size;
+    long long file_downloaded;
+    int file_priority;
+    long long begin_idx;
+    long long end_idx;
+} File;
+
 typedef struct Files {
     int error;
     int size;
     char* title;
-    char** file_name;
-	char** file_path;
-    long long* file_size;
-	long long* file_downloaded;
-    int* file_priority;
+    File* files;
 } Files;
 
 typedef struct Trackers {

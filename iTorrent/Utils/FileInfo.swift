@@ -8,6 +8,12 @@
 
 import Foundation
 
+struct FilePieceData {
+    var name : String = ""
+    var beginIdx : Int64 = 0
+    var endIdx : Int64 = 0
+}
+
 class File {
 	var name : String = ""
 	var path : String = ""

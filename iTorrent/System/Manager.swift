@@ -113,7 +113,11 @@ class Manager {
             status.isFinished = res.is_finished[i] == 1
             status.isSeed = res.is_seed[i] == 1
 			status.hasMetadata = res.has_metadata[i] == 1
-			
+            
+            status.sequentialDownload = res.sequential_download[i] == 1
+            status.numPieces = Int(res.num_pieces[i])
+            status.pieces = Array(UnsafeBufferPointer(start: res.pieces[i], count: status.numPieces))
+            
 			if (managerSaves[status.hash] == nil) {
 				managerSaves[status.hash] = UserManagerSettings()
 			}
@@ -374,7 +378,7 @@ class Manager {
     
     static func getManagerByHash(hash: String) -> TorrentStatus? {
 		let localStates = torrentStates
-        return localStates.filter({$0.hash == hash}).first
+        return localStates.filter({$0.hash == hash}).first //TODO: can crach (Out of Index) - localStates.count == 0
     }
 	
 	static func startFTP(){

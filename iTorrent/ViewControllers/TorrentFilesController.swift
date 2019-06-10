@@ -127,18 +127,16 @@ class TorrentFilesController : ThemedUIViewController {
         }
 		
         let size = Int(localFiles.size)
-        let namesArr = Array(UnsafeBufferPointer(start: localFiles.file_name, count: size))
-        let sizesArr = Array(UnsafeBufferPointer(start: localFiles.file_size, count: size))
         
         for i in 0 ..< size {
             let file = File()
 			
-			let n = String(validatingUTF8: namesArr[Int(i)]!) ?? "ERROR"
+			let n = String(validatingUTF8: localFiles.files[i].file_name) ?? "ERROR"
 			let name = URL(string: n.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!
 			file.name = name.lastPathComponent
 			file.path = name.deletingLastPathComponent().path == "." ? "" : name.deletingLastPathComponent().path
-			file.size = sizesArr[i]
-			file.isDownloading = localFiles.file_priority[Int(i)]
+			file.size = localFiles.files[i].file_size
+			file.isDownloading = localFiles.files[i].file_priority
 			file.number = i
 			
 			files.append(file)
@@ -191,11 +189,10 @@ class TorrentFilesController : ThemedUIViewController {
 		}
 		
 		let size = Int(localFiles.size)
-		let sizesArr = Array(UnsafeBufferPointer(start: localFiles.file_size, count: size))
 
 		for i in 0 ..< size {
-			notSortedFiles[i].size = sizesArr[i]
-			notSortedFiles[i].downloaded = localFiles.file_downloaded[i]
+			notSortedFiles[i].size = localFiles.files[i].file_size
+			notSortedFiles[i].downloaded = localFiles.files[i].file_downloaded
 		}
 	}
     

@@ -14,6 +14,10 @@ import MarqueeLabel
 class TorrentDetailsController: ThemedUITableViewController {
 	@IBOutlet weak var shareButton: UIBarButtonItem!
 	
+    @IBOutlet var segmentedProgressBar: SegmentedProgressView!
+    @IBOutlet var progressBar: UIProgressView!
+    @IBOutlet var sequentialDownloadSwitcher: UISwitch!
+    
 	@IBOutlet weak var start: UIBarButtonItem!
     @IBOutlet weak var pause: UIBarButtonItem!
     @IBOutlet weak var rehash: UIBarButtonItem!
@@ -41,6 +45,8 @@ class TorrentDetailsController: ThemedUITableViewController {
 	
 	var seedLimitPickerView : SeedLimitPickerView!
 	var myPickerView : UIPickerView!
+    
+    var sortedFilesData : [FilePieceData]!
     
     deinit {
         print("Details DEINIT")
@@ -81,8 +87,6 @@ class TorrentDetailsController: ThemedUITableViewController {
 		view.isUserInteractionEnabled = true
 		tableView.isUserInteractionEnabled = true
 		
-		managerUpdated()
-		
 		// MARQUEE LABEL
 		let theme = Themes.current()
 		let label = MarqueeLabel.init(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 44), duration: 8.0, fadeLength: 10)
@@ -90,6 +94,13 @@ class TorrentDetailsController: ThemedUITableViewController {
 		label.textAlignment = NSTextAlignment.center
 		label.textColor = theme.mainText
 		navigationItem.titleView = label
+        
+        let filesRaw = get_files_of_torrent_by_hash(managerHash)
+        sortedFilesData = Array(UnsafeBufferPointer(start: filesRaw.files, count: Int(filesRaw.size)))
+            .sorted{ (String(validatingUTF8: $0.file_name) ?? "ERROR") < (String(validatingUTF8: $1.file_name) ?? "ERROR") }
+            .map{FilePieceData(name: String(validatingUTF8: $0.file_name) ?? "ERROR", beginIdx: $0.begin_idx, endIdx: $0.end_idx)}
+        
+        managerUpdated()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -136,6 +147,12 @@ class TorrentDetailsController: ThemedUITableViewController {
             let manager = Manager.getManagerByHash(hash: managerHash) {
             let calendar = Calendar.current
             
+            let totalDownloadProgress = Float(manager.totalDone) / Float(manager.totalSize)
+            progressBar.setProgress(totalDownloadProgress, animated: false)
+            
+            segmentedProgressBar.setProgress(progress: sortPiecesByFilesName(manager.pieces))
+            sequentialDownloadSwitcher.setOn(manager.sequentialDownload, animated: false)
+            
             title = manager.title
             stateLabel.text = NSLocalizedString(manager.displayState, comment: "") 
             downloadLabel.text = Utils.getSizeText(size: Int64(manager.downloadRate)) + "/s"
@@ -147,7 +164,7 @@ class TorrentDetailsController: ThemedUITableViewController {
             commentsLabel.text = manager.comment
             selectedLabel.text = Utils.getSizeText(size: manager.totalWanted) + " / " + Utils.getSizeText(size: manager.totalSize)
             completedLabel.text = Utils.getSizeText(size: manager.totalWantedDone)
-            progressLabel.text = String(format: "%.2f", Double(manager.totalWantedDone) / Double(manager.totalWanted) * 100) + "% / " + String(format: "%.2f", Double(manager.totalDone) / Double(manager.totalSize) * 100) + "%"
+            progressLabel.text = String(format: "%.2f", Double(manager.totalWantedDone) / Double(manager.totalWanted) * 100) + "% / " + String(format: "%.2f", totalDownloadProgress * 100) + "%"
             downloadedLabel.text = Utils.getSizeText(size: manager.totalDownload)
             uploadedLabel.text = Utils.getSizeText(size: manager.totalUpload)
             seedersLabel.text = String(manager.numSeeds)
@@ -189,6 +206,18 @@ class TorrentDetailsController: ThemedUITableViewController {
         }
     }
     
+    func sortPiecesByFilesName(_ pieces : [Int32]) -> [CGFloat] {
+        var res : [CGFloat] = []
+        
+        for i in sortedFilesData {
+            for j in i.beginIdx ... i.endIdx {
+                res.append(CGFloat(pieces[Int(j)]))
+            }
+        }
+        
+        return res
+    }
+    
     override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
         if (identifier == "Files" &&
             Manager.getManagerByHash(hash: managerHash)?.state != Utils.torrentStates.Metadata.rawValue) {
@@ -210,7 +239,11 @@ class TorrentDetailsController: ThemedUITableViewController {
 			(segue.destination as! TrackersListController).managerHash = managerHash
 		}
     }
-	
+    
+    @IBAction func sequentialSwitcherChanged(_ sender: UISwitch) {
+        set_torrent_files_sequental(managerHash, sender.isOn ? 1 : 0)
+    }
+    
 	@IBAction func seedingStateChanged(_ sender: UISwitch) {
 		Manager.managerSaves[managerHash]?.seedMode = sender.isOn
 		if let manager = Manager.getManagerByHash(hash: managerHash) {
