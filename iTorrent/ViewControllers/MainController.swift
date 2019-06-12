@@ -7,11 +7,11 @@
 //
 
 import UIKit
-import GoogleMobileAds
+//import GoogleMobileAds
 
 class MainController: ThemedUIViewController {
     @IBOutlet weak var tableView: ThemedUITableView!
-	@IBOutlet weak var adsView: GADBannerView!
+//	@IBOutlet weak var adsView: GADBannerView!
     @IBOutlet var tableHeaderView: TableHeaderView!
     
     var managers : [[TorrentStatus]] = []
@@ -53,11 +53,6 @@ class MainController: ThemedUIViewController {
         
         tableView.reloadData()
 		
-		adsView.adUnitID = "ca-app-pub-3833820876743264/1345533898"
-		adsView.rootViewController = self
-		adsView.load(GADRequest())
-		adsView.delegate = self
-		
 		DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) {
 			if let dialog = UpdatesDialog.summon() {
 				self.present(dialog, animated: true)
@@ -81,11 +76,7 @@ class MainController: ThemedUIViewController {
         navigationController?.isToolbarHidden = false
 		
 		if (!UserDefaults.standard.bool(forKey: UserDefaultsKeys.disableAds) && adsLoaded) {
-			adsView.isHidden = false
-			tableView.contentInset.bottom = adsView.frame.height
-			tableView.scrollIndicatorInsets.bottom = adsView.frame.height
 		} else {
-			adsView.isHidden = true
 			tableView.contentInset.bottom = 0
 			tableView.scrollIndicatorInsets.bottom = 0
 		}
@@ -612,24 +603,3 @@ extension MainController: UITableViewDelegate {
         }
     }
 }
-
-extension MainController: GADBannerViewDelegate {
-    func adView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: GADRequestError) {
-        adsLoaded = false
-        
-        bannerView.isHidden = true
-        tableView.contentInset.bottom = 0
-        tableView.scrollIndicatorInsets.bottom = 0
-    }
-    
-    func adViewDidReceiveAd(_ bannerView: GADBannerView) {
-        // Add banner to view and add constraints as above.
-        adsLoaded = true
-        if (!UserDefaults.standard.bool(forKey: UserDefaultsKeys.disableAds)) {
-            bannerView.isHidden = false
-            tableView.contentInset.bottom = bannerView.frame.height
-            tableView.scrollIndicatorInsets.bottom = bannerView.frame.height
-        }
-    }
-}
-

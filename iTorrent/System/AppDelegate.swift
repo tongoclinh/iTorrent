@@ -9,9 +9,6 @@
 import UIKit
 import UserNotifications
 
-import Firebase
-import GoogleMobileAds
-
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDelegate {
 
@@ -30,8 +27,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
         // Override point for customization after application launch.
 		defaultUserDefaultsSettings()
 		
-		FirebaseApp.configure()
-		GADMobileAds.configure(withApplicationID: "ca-app-pub-3833820876743264~3795726972")
+//		FirebaseApp.configure()
 		
         Manager.InitManager()
         
