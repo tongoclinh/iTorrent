@@ -27,6 +27,8 @@
 "Select All" = "Выбрать все";
 "Deselect" = "Отменить";
 
+"Search" = "Поиск";
+
 "time remains" = "время осталось";
 "eternity" = "вечность";
 
@@ -64,6 +66,11 @@
 "Currently sorted by " = "Сейчас отсортеровано по ";
 "Disable state sections" = "Отключить разделение на секции";
 "Enable state sections" = "Включить разделение на секции";
+
+//Torrent details
+"Torrent file" = "Torrent файл";
+"Magnet link" = "Magnet ссылка";
+"Magnet link copied to clipboard" = "Magnet ссылка скопирована";
 
 //Settings Controller
 "Warning" = "Внимание";
@@ -119,6 +126,10 @@
 "Enter the full tracker's URL" = "Введите подный URL трекера";
 "Tracker's URL" = "Введите URL трекера";
 "Add" = "Добавить";
+"Peers" = "Пиры";
+"Seeds" = "Сиды";
+"Leechers" = "Личеры";
+"Are you shure to remove this trackers?" = "Вы уверены что хотите удалить эти трекеры?";
 
 //AppDelegate
 "Obtaining Metadata" = "Получение Метадаты";

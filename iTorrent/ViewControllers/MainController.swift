@@ -7,15 +7,17 @@
 //
 
 import UIKit
-//import GoogleMobileAds
+import GoogleMobileAds
 
 class MainController: ThemedUIViewController {
     @IBOutlet weak var tableView: ThemedUITableView!
-//	@IBOutlet weak var adsView: GADBannerView!
+	@IBOutlet weak var adsView: GADBannerView!
     @IBOutlet var tableHeaderView: TableHeaderView!
     
     var managers : [[TorrentStatus]] = []
 	var headers : [String] = []
+    
+    var filterQuery : String?
     
     var topRightItemsCopy : [UIBarButtonItem]?
     var bottomItemsCopy : [UIBarButtonItem]?
@@ -53,11 +55,26 @@ class MainController: ThemedUIViewController {
         
         tableView.reloadData()
 		
+		adsView.adUnitID = "ca-app-pub-3833820876743264/1345533898"
+		adsView.rootViewController = self
+		adsView.load(GADRequest())
+		adsView.delegate = self
+		
 		DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) {
 			if let dialog = UpdatesDialog.summon() {
 				self.present(dialog, animated: true)
 			}
 		}
+        
+        let searchController = UISearchController(searchResultsController: nil)
+        
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = NSLocalizedString("Search", comment: "")
+        if #available(iOS 11.0, *) {
+            navigationItem.searchController = searchController
+        }
+        definesPresentationContext = true
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -66,7 +83,8 @@ class MainController: ThemedUIViewController {
 		navigationController?.toolbar.tintColor = navigationController?.navigationBar.tintColor
 		
 		managers.removeAll()
-		managers.append(contentsOf: SortingManager.sortTorrentManagers(managers: Manager.torrentStates, headers: &headers))
+        managers.append(contentsOf: SortingManager.sortTorrentManagers(managers: Manager.torrentStates, headers: &headers))
+        updateFilterQuery()
         tableView.reloadData()
 		
 		NotificationCenter.default.addObserver(self, selector: #selector(managerUpdated), name: .torrentsUpdated, object: nil)
@@ -76,7 +94,11 @@ class MainController: ThemedUIViewController {
         navigationController?.isToolbarHidden = false
 		
 		if (!UserDefaults.standard.bool(forKey: UserDefaultsKeys.disableAds) && adsLoaded) {
+			adsView.isHidden = false
+			tableView.contentInset.bottom = adsView.frame.height
+			tableView.scrollIndicatorInsets.bottom = adsView.frame.height
 		} else {
+			adsView.isHidden = true
 			tableView.contentInset.bottom = 0
 			tableView.scrollIndicatorInsets.bottom = 0
 		}
@@ -95,10 +117,11 @@ class MainController: ThemedUIViewController {
     
     @objc func managerUpdated() {
 		var changed = false
-		var oldManagers = managers
+        let oldManagers = managers
 		managers.removeAll()
-		managers.append(contentsOf: SortingManager.sortTorrentManagers(managers: Manager.torrentStates, headers: &headers))
-		if (oldManagers.count != managers.count) {
+        managers.append(contentsOf: SortingManager.sortTorrentManagers(managers: Manager.torrentStates, headers: &headers))
+        updateFilterQuery()
+        if (oldManagers.count != managers.count) {
 			changed = true
 		} else {
 			for i in 0 ..< managers.count {
@@ -123,8 +146,9 @@ class MainController: ThemedUIViewController {
 		
 	@objc func managerStateChanged(notfication: NSNotification) {
 		managers.removeAll()
-		managers.append(contentsOf: SortingManager.sortTorrentManagers(managers: Manager.torrentStates, headers: &headers))
-		tableView.reloadData()
+        managers.append(contentsOf: SortingManager.sortTorrentManagers(managers: Manager.torrentStates, headers: &headers))
+        updateFilterQuery()
+        tableView.reloadData()
 	}
 	
 	func removeTorrent(indexPath: IndexPath, isMagnet: Bool = false, removeData: Bool = false, visualOnly: Bool = false) {
@@ -161,7 +185,7 @@ class MainController: ThemedUIViewController {
 	}
     
     @IBAction func AddTorrentAction(_ sender: UIBarButtonItem) {
-        let addController = ThemedUIAlertController(title: NSLocalizedString("Add from...", comment: ""), message: nil, preferredStyle: .actionSheet)
+        let addController = ThemedUIAlertController(title: nil, message: NSLocalizedString("Add from...", comment: ""), preferredStyle: .actionSheet)
         
         let addURL = UIAlertAction(title: "URL", style: .default) { _ in
             let addURLController = ThemedUIAlertController(title: NSLocalizedString("Add from URL", comment: ""), message: NSLocalizedString("Please enter the existing torrent's URL below", comment: ""), preferredStyle: .alert)
@@ -302,8 +326,9 @@ class MainController: ThemedUIViewController {
     @IBAction func sortAction(_ sender: UIBarButtonItem) {
 		let sortingController = SortingManager.createSortingController(buttonItem: sender, applyChanges: {
 			self.managers.removeAll()
-			self.managers.append(contentsOf: SortingManager.sortTorrentManagers(managers: Manager.torrentStates, headers: &self.headers))
-			self.tableView.reloadData();
+            self.managers.append(contentsOf: SortingManager.sortTorrentManagers(managers: Manager.torrentStates, headers: &self.headers))
+            self.updateFilterQuery()
+            self.tableView.reloadData();
 		})
 		present(sortingController, animated: true)
     }
@@ -545,7 +570,7 @@ extension MainController: UITableViewDataSource {
 
 extension MainController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return headers[section].isEmpty ? 0 : 28
+        return managers[section].isEmpty ? 0 : 28
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -599,6 +624,44 @@ extension MainController: UITableViewDelegate {
             }
             for item in toolbarItems! {
                 item.isEnabled = b
+            }
+        }
+    }
+}
+
+extension MainController: GADBannerViewDelegate {
+    func adView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: GADRequestError) {
+        adsLoaded = false
+        
+        bannerView.isHidden = true
+        tableView.contentInset.bottom = 0
+        tableView.scrollIndicatorInsets.bottom = 0
+    }
+    
+    func adViewDidReceiveAd(_ bannerView: GADBannerView) {
+        // Add banner to view and add constraints as above.
+        adsLoaded = true
+        if (!UserDefaults.standard.bool(forKey: UserDefaultsKeys.disableAds)) {
+            bannerView.isHidden = false
+            tableView.contentInset.bottom = bannerView.frame.height
+            tableView.scrollIndicatorInsets.bottom = bannerView.frame.height
+        }
+    }
+}
+
+extension MainController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        filterQuery = searchController.searchBar.text
+        self.updateFilterQuery()
+        self.tableView.reloadData()
+    }
+    
+    func updateFilterQuery() {
+        if let filterQuery = filterQuery, !filterQuery.isEmpty {
+            for index in 0 ..< managers.count {
+                managers[index] = managers[index].filter { manager -> Bool in
+                    return manager.title.lowercased().contains(filterQuery.lowercased())
+                }
             }
         }
     }

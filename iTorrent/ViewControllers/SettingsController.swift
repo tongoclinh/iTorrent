@@ -40,6 +40,8 @@ class SettingsController: ThemedUITableViewController {
     
 	override func viewDidLoad() {
         super.viewDidLoad()
+        
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
 		
 		darkThemeSwitch.setOn(UserDefaults.standard.integer(forKey: UserDefaultsKeys.themeNum) == 1, animated: false)
 		
@@ -98,7 +100,7 @@ class SettingsController: ThemedUITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationController?.isToolbarHidden = true
+        navigationController?.setToolbarHidden(true, animated: false)
     }
 	
 	override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -334,7 +336,7 @@ class SettingsController: ThemedUITableViewController {
 				
 				DispatchQueue.main.async {
 					UIPasteboard.general.string = card
-					let alert = ThemedUIAlertController(title: "", message: NSLocalizedString("Copied CC # to clipboard!", comment: ""), preferredStyle: .alert)
+					let alert = ThemedUIAlertController(title: nil, message: NSLocalizedString("Copied CC # to clipboard!", comment: ""), preferredStyle: .alert)
 					self.present(alert, animated: true, completion: nil)
 					// change alert timer to 2 seconds, then dismiss
 					let when = DispatchTime.now() + 2

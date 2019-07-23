@@ -21,6 +21,7 @@ class File {
 	var downloaded : Int64 = 0
 	var isDownloading : Int32 = 0
 	var number : Int = 0
+    var pieces : [Int32] = []
 }
 
 class Folder {

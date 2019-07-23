@@ -9,23 +9,23 @@
 import UIKit
 
 class SegmentedProgressView: UIView, Themed {
-    var numPiecesOld = 1
-    var numPieces: Int = 1
+    var numPiecesOld = 0
+    var numPieces: Int = 0
     
     private var progress: [CGFloat] = []
     
-    public func setNumberOfSections(sections: Int) {
+    public func setNumberOfSections(_ sections: Int) {
         if (numPiecesOld == sections) { return }
         
         numPiecesOld = numPieces
         progress = [CGFloat].init(repeating: 0, count: numPieces)
     }
     
-    public func setProgress(progress: [Float]) {
-        setProgress(progress: progress.map{ CGFloat($0) })
+    public func setProgress(_ progress: [Float]) {
+        setProgress(progress.map{ CGFloat($0) })
     }
     
-    public func setProgress(progress: [CGFloat]) {
+    public func setProgress(_ progress: [CGFloat]) {
         if (self.progress == progress) { return }
         
         numPieces = progress.count
@@ -33,7 +33,7 @@ class SegmentedProgressView: UIView, Themed {
         setNeedsDisplay()
     }
     
-    public func setProgress(pieceIndex: Int, progress: Float) {
+    public func setProgress(_ progress: Float, pieceIndex: Int) {
         self.progress[pieceIndex] = CGFloat(progress)
         setNeedsDisplay()
     }
@@ -61,22 +61,33 @@ class SegmentedProgressView: UIView, Themed {
         super.awakeFromNib()
         
         clipsToBounds = true
-        
-//        numPieces = 4
-//        progress = [0.8, 0.2, 0.9, 0.6]
     }
     
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
     override func draw(_ rect: CGRect) {
         let context = UIGraphicsGetCurrentContext()
         context?.setLineWidth(bounds.size.height)
         context?.setStrokeColor(tintColor.cgColor)
         let pieceLength = bounds.width / CGFloat(numPieces)
+        
+        var start: CGFloat = 0
+        var end: CGFloat = 0
+        var merged = false
+        
         for i in 0 ..< numPieces {
-            let start = CGFloat(i) * bounds.width / CGFloat(numPieces)
-            context?.move(to: CGPoint(x: start, y: bounds.midY))
-            context?.addLine(to: CGPoint(x: start + progress[i] * pieceLength, y: bounds.midY))
+            start = CGFloat(i) * bounds.width / CGFloat(numPieces)
+            
+            if (!merged) {
+                context?.move(to: CGPoint(x: start, y: bounds.midY))
+            }
+            if (progress[i] == 1 && i != numPieces - 1) {
+                merged = true
+                continue
+            }
+            merged = false
+            
+            end = start + progress[i] * pieceLength
+            context?.addLine(to: CGPoint(x: end, y: bounds.midY))
+            
             context?.strokePath()
         }
     }

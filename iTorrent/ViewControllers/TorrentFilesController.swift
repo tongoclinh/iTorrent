@@ -89,7 +89,7 @@ class TorrentFilesController : ThemedUIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         
-        tableView.rowHeight = 78
+        tableView.rowHeight = 82
 		tableView.allowsMultipleSelectionDuringEditing = true
     }
     
@@ -138,6 +138,7 @@ class TorrentFilesController : ThemedUIViewController {
 			file.size = localFiles.files[i].file_size
 			file.isDownloading = localFiles.files[i].file_priority
 			file.number = i
+            file.pieces = Array(UnsafeBufferPointer(start: localFiles.files[i].pieces, count: Int(localFiles.files[i].num_pieces)))
 			
 			files.append(file)
 			
@@ -193,6 +194,7 @@ class TorrentFilesController : ThemedUIViewController {
 		for i in 0 ..< size {
 			notSortedFiles[i].size = localFiles.files[i].file_size
 			notSortedFiles[i].downloaded = localFiles.files[i].file_downloaded
+            notSortedFiles[i].pieces = Array(UnsafeBufferPointer(start: localFiles.files[i].pieces, count: Int(localFiles.files[i].num_pieces)))
 		}
 	}
     
@@ -397,7 +399,7 @@ extension TorrentFilesController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         let title = NSLocalizedString("Priority", comment: "")
         let button = UITableViewRowAction(style: .default, title: title) { action, indexPath in
-            let controller = ThemedUIAlertController(title: NSLocalizedString("Priority", comment: ""), message: nil, preferredStyle: .actionSheet)
+            let controller = ThemedUIAlertController(title: nil, message: NSLocalizedString("Priority", comment: ""), preferredStyle: .actionSheet)
             
             // "Normal"
             let max = UIAlertAction(title: NSLocalizedString("High", comment: ""), style: .default, handler: { _ in

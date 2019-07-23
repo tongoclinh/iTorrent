@@ -84,7 +84,7 @@
 "EH3-LO-4n7.text" = "Label";
 
 /* Class = "UIBarButtonItem"; title = "Deselect All"; ObjectID = "FKU-d6-mSo"; */
-"FKU-d6-mSo.title" = "Отменить Все";
+"FKU-d6-mSo.title" = "Убрать Все";
 
 /* Class = "UIBarButtonItem"; title = "Select All"; ObjectID = "FeY-Vw-7DL"; */
 "FeY-Vw-7DL.title" = "Отметить Все";

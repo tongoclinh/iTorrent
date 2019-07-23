@@ -15,7 +15,7 @@ class TorrentDetailsController: ThemedUITableViewController {
 	@IBOutlet weak var shareButton: UIBarButtonItem!
 	
     @IBOutlet var segmentedProgressBar: SegmentedProgressView!
-    @IBOutlet var progressBar: UIProgressView!
+    @IBOutlet var progressBar: SegmentedProgressView!
     @IBOutlet var sequentialDownloadSwitcher: UISwitch!
     
 	@IBOutlet weak var start: UIBarButtonItem!
@@ -66,6 +66,8 @@ class TorrentDetailsController: ThemedUITableViewController {
 		if (managerHash == nil) {
 			return
 		}
+        
+        scrape_tracker(managerHash)
 		
 		let calendar = Calendar.current
 		var saves = Manager.managerSaves[managerHash]
@@ -94,11 +96,6 @@ class TorrentDetailsController: ThemedUITableViewController {
 		label.textAlignment = NSTextAlignment.center
 		label.textColor = theme.mainText
 		navigationItem.titleView = label
-        
-        let filesRaw = get_files_of_torrent_by_hash(managerHash)
-        sortedFilesData = Array(UnsafeBufferPointer(start: filesRaw.files, count: Int(filesRaw.size)))
-            .sorted{ (String(validatingUTF8: $0.file_name) ?? "ERROR") < (String(validatingUTF8: $1.file_name) ?? "ERROR") }
-            .map{FilePieceData(name: String(validatingUTF8: $0.file_name) ?? "ERROR", beginIdx: $0.begin_idx, endIdx: $0.end_idx)}
         
         managerUpdated()
     }
@@ -147,11 +144,15 @@ class TorrentDetailsController: ThemedUITableViewController {
             let manager = Manager.getManagerByHash(hash: managerHash) {
             let calendar = Calendar.current
             
-            let totalDownloadProgress = Float(manager.totalDone) / Float(manager.totalSize)
-            progressBar.setProgress(totalDownloadProgress, animated: false)
+            let totalDownloadProgress = manager.totalSize > 0 ? Float(manager.totalDone) / Float(manager.totalSize) : 0
+            progressBar.setProgress([totalDownloadProgress])
             
-            segmentedProgressBar.setProgress(progress: sortPiecesByFilesName(manager.pieces))
-            sequentialDownloadSwitcher.setOn(manager.sequentialDownload, animated: false)
+            if (manager.hasMetadata) {
+                setupPiecesFilter()
+                
+                segmentedProgressBar.setProgress(sortPiecesByFilesName(manager.pieces))
+                sequentialDownloadSwitcher.setOn(manager.sequentialDownload, animated: false)
+            }
             
             title = manager.title
             stateLabel.text = NSLocalizedString(manager.displayState, comment: "") 
@@ -204,6 +205,14 @@ class TorrentDetailsController: ThemedUITableViewController {
 				shareButton.isEnabled = false
 			}
         }
+    }
+    
+    func setupPiecesFilter() {
+        if (sortedFilesData != nil) { return }
+        let filesRaw = get_files_of_torrent_by_hash(managerHash)
+        sortedFilesData = Array(UnsafeBufferPointer(start: filesRaw.files, count: Int(filesRaw.size)))
+            .sorted{ (String(validatingUTF8: $0.file_name) ?? "ERROR") < (String(validatingUTF8: $1.file_name) ?? "ERROR") }
+            .map{FilePieceData(name: String(validatingUTF8: $0.file_name) ?? "ERROR", beginIdx: $0.begin_idx, endIdx: $0.end_idx)}
     }
     
     func sortPiecesByFilesName(_ pieces : [Int32]) -> [CGFloat] {
@@ -290,16 +299,41 @@ class TorrentDetailsController: ThemedUITableViewController {
 	
 	@IBAction func sendTorrent(_ sender: UIBarButtonItem) {
 		if let title = title {
-			let stringPath = Manager.configFolder + "/" + title + ".torrent"
-			if (FileManager.default.fileExists(atPath: stringPath)) {
-				let path = NSURL(fileURLWithPath: stringPath, isDirectory: false)
-				let shareController = ThemedUIActivityViewController(activityItems: [path], applicationActivities: nil)
-				if (shareController.popoverPresentationController != nil) {
-					shareController.popoverPresentationController?.barButtonItem = sender
-					shareController.popoverPresentationController?.permittedArrowDirections = .any
-				}
-				UIApplication.shared.keyWindow?.rootViewController?.present(shareController, animated: true)
-			}
+            let controller = ThemedUIAlertController(title: nil, message: NSLocalizedString("Share", comment: ""), preferredStyle: .actionSheet)
+            let file = UIAlertAction(title: NSLocalizedString("Torrent file", comment: ""), style: .default) { (action) in
+                let stringPath = Manager.configFolder + "/" + title + ".torrent"
+                if (FileManager.default.fileExists(atPath: stringPath)) {
+                    let path = NSURL(fileURLWithPath: stringPath, isDirectory: false)
+                    let shareController = ThemedUIActivityViewController(activityItems: [path], applicationActivities: nil)
+                    if (shareController.popoverPresentationController != nil) {
+                        shareController.popoverPresentationController?.barButtonItem = sender
+                        shareController.popoverPresentationController?.permittedArrowDirections = .any
+                    }
+                    UIApplication.shared.keyWindow?.rootViewController?.present(shareController, animated: true)
+                }
+            }
+            let magnet = UIAlertAction(title: NSLocalizedString("Magnet link", comment: ""), style: .default) { (action) in
+                UIPasteboard.general.string = String(validatingUTF8: get_torrent_magnet_link(self.managerHash))
+                let alert = ThemedUIAlertController(title: nil, message: NSLocalizedString("Magnet link copied to clipboard", comment: ""), preferredStyle: .alert)
+                self.present(alert, animated: true, completion: nil)
+                // change alert timer to 2 seconds, then dismiss
+                let when = DispatchTime.now() + 2
+                DispatchQueue.main.asyncAfter(deadline: when){
+                    alert.dismiss(animated: true, completion: nil)
+                }
+            }
+            let cancel = UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel)
+            
+            controller.addAction(file)
+            controller.addAction(magnet)
+            controller.addAction(cancel)
+            
+            if (controller.popoverPresentationController != nil) {
+                controller.popoverPresentationController?.barButtonItem = sender
+                controller.popoverPresentationController?.permittedArrowDirections = .up
+            }
+            
+            present(controller, animated: true)
 		}
 	}
 	

@@ -27,6 +27,8 @@
 "Select All" = "Select All";
 "Deselect" = "Deselect";
 
+"Search" = "Search";
+
 "time remains" = "time remains";
 "eternity" = "eternity";
 
@@ -64,6 +66,11 @@
 "Currently sorted by " = "Currently sorted by ";
 "Disable state sections" = "Disable state sections";
 "Enable state sections" = "Enable state sections";
+
+//Torrent details
+"Torrent file" = "Torrent file";
+"Magnet link" = "Magnet link";
+"Magnet link copied to clipboard" = "Magnet link copied to clipboard";
 
 //Settings Controller
 "Warning" = "Warning";
@@ -112,6 +119,10 @@
 "Enter the full tracker's URL" = "Enter the full tracker URL";
 "Tracker's URL" = "Enter tracker URL";
 "Add" = "Add";
+"Peers" = "Peers";
+"Seeds" = "Seeds";
+"Leechers" = "Leechers";
+"Are you shure to remove this trackers?" = "Are you shure to remove this trackers?";
 
 //AppDelegate
 "Obtaining Metadata" = "Obtaining Metadata";
