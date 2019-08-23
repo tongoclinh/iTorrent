@@ -6,7 +6,7 @@ target 'iTorrent' do
   use_frameworks!
 
   # Pods for iTorrent
-  pod 'MarqueeLabel/Swift'
+  pod 'MarqueeLabel'
 
 end
 

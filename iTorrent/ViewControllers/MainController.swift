@@ -12,7 +12,15 @@ import UIKit
 class MainController: ThemedUIViewController {
     @IBOutlet weak var tableView: ThemedUITableView!
 //    @IBOutlet weak var adsView: GADBannerView!
-    @IBOutlet var tableHeaderView: TableHeaderView!
+    
+    lazy var searchControllerInsideNavigation : Bool = {
+        if #available(iOS 11.0, *) {
+            return true
+        }
+        return false
+    }()
+    
+    var searchController : UISearchController = UISearchController(searchResultsController: nil)
     
     var managers : [[TorrentStatus]] = []
 	var headers : [String] = []
@@ -37,7 +45,20 @@ class MainController: ThemedUIViewController {
     override func themeUpdate() {
         super.themeUpdate()
         
-        tableView.backgroundColor = Themes.current().backgroundMain
+        let theme = Themes.current()
+        tableView.backgroundColor = theme.backgroundMain
+        searchController.searchBar.keyboardAppearance = theme.keyboardAppearence
+        searchController.searchBar.barStyle = theme.barStyle
+        searchController.searchBar.tintColor = view.tintColor
+        if !searchControllerInsideNavigation {
+            searchController.searchBar.barTintColor = theme.backgroundMain
+            searchController.searchBar.layer.borderWidth = 1
+            searchController.searchBar.layer.borderColor = theme.backgroundMain.cgColor
+            
+            let back = tableView.backgroundView ?? UIView()
+            back.backgroundColor = theme.backgroundMain
+            tableView.backgroundView = back
+        }
     }
     
     override func viewDidLoad() {
@@ -71,8 +92,11 @@ class MainController: ThemedUIViewController {
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = NSLocalizedString("Search", comment: "")
-        if #available(iOS 11.0, *) {
+        if #available(iOS 11.0, *),
+            searchControllerInsideNavigation {
             navigationItem.searchController = searchController
+        } else {
+            tableView.tableHeaderView = searchController.searchBar
         }
         definesPresentationContext = true
     }
@@ -275,6 +299,14 @@ class MainController: ThemedUIViewController {
         
         addController.addAction(addMagnet)
         addController.addAction(addURL)
+        
+        if #available(iOS 11.0, *) {
+            let files = UIAlertAction(title: NSLocalizedString("Files", comment: ""), style: .default) { _ in
+                self.present(FilesBrowserController(), animated: true)
+            }
+            addController.addAction(files)
+        }
+        
         addController.addAction(cancel)
 		
 		if (addController.popoverPresentationController != nil) {
@@ -513,7 +545,7 @@ extension MainController: UITableViewDataSource {
         return true
     }
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
             let selectedHash = managers[indexPath.section][indexPath.row].hash
             let message = managers[indexPath.section][indexPath.row].hasMetadata ? NSLocalizedString("Are you sure to remove", comment: "") + " " + managers[indexPath.section][indexPath.row].title + " \(NSLocalizedString("torrent", comment: ""))?" : NSLocalizedString("Are you sure to remove this magnet torrent?", comment: "")
@@ -570,7 +602,7 @@ extension MainController: UITableViewDataSource {
 
 extension MainController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return managers[section].isEmpty ? 0 : 28
+        return managers[section].isEmpty || headers[section].isEmpty ? CGFloat.leastNonzeroMagnitude : 28
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -652,15 +684,16 @@ extension MainController: UITableViewDelegate {
 extension MainController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         filterQuery = searchController.searchBar.text
-        self.updateFilterQuery()
+        managerUpdated()
         self.tableView.reloadData()
     }
     
     func updateFilterQuery() {
         if let filterQuery = filterQuery, !filterQuery.isEmpty {
+            let separatedQuery = filterQuery.lowercased().split{$0 == " " || $0 == ","}
             for index in 0 ..< managers.count {
                 managers[index] = managers[index].filter { manager -> Bool in
-                    return manager.title.lowercased().contains(filterQuery.lowercased())
+                    return separatedQuery.allSatisfy {manager.title.lowercased().contains($0)}
                 }
             }
         }

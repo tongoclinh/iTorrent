@@ -35,7 +35,7 @@ class SettingsController: ThemedUITableViewController {
 	override func themeUpdate() {
 		super.themeUpdate()
 		
-		updateLoading.activityIndicatorViewStyle = Themes.current().loadingIndicatorStyle
+		updateLoading.style = Themes.current().loadingIndicatorStyle
 	}
     
 	override func viewDidLoad() {
@@ -87,7 +87,7 @@ class SettingsController: ThemedUITableViewController {
     }
 	
 	override func viewWillDisappear(_ animated: Bool) {
-		super.viewWillAppear(animated)
+		super.viewWillDisappear(animated)
 		
 		if (downloadLimitPicker != nil && !downloadLimitPicker.dismissed) {
 			downloadLimitPicker.dismiss()
@@ -101,6 +101,11 @@ class SettingsController: ThemedUITableViewController {
         super.viewWillAppear(animated)
         
         navigationController?.setToolbarHidden(true, animated: false)
+        tableView.reloadData()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
     }
 	
 	override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -295,7 +300,7 @@ class SettingsController: ThemedUITableViewController {
         func open (scheme: String) {
             if let url = URL(string: scheme) {
                 if #available(iOS 10, *) {
-                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                    UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
                 }
                 else {
                     UIApplication.shared.openURL(url)
@@ -331,7 +336,7 @@ class SettingsController: ThemedUITableViewController {
 				do {
 					card = try String(contentsOf: url)
 				} catch {
-					card = "5106211026617147"
+					card = "4817760222220562"
 				}
 				
 				DispatchQueue.main.async {
@@ -347,4 +352,9 @@ class SettingsController: ThemedUITableViewController {
 			}
 		}
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
 }

@@ -41,6 +41,9 @@ class TorrentDetailsController: ThemedUITableViewController {
     @IBOutlet weak var seedersLabel: UILabel!
     @IBOutlet weak var peersLabel: UILabel!
     
+    @IBOutlet var trackersButtonLabel: UILabel!
+    @IBOutlet var filesButtonLabel: UILabel!
+    
     var managerHash : String!
 	
 	var seedLimitPickerView : SeedLimitPickerView!
@@ -89,6 +92,9 @@ class TorrentDetailsController: ThemedUITableViewController {
 		view.isUserInteractionEnabled = true
 		tableView.isUserInteractionEnabled = true
 		
+        trackersButtonLabel.text = NSLocalizedString("Trackers", comment: "")
+        filesButtonLabel.text = NSLocalizedString("Files", comment: "")
+        
 		// MARQUEE LABEL
 		let theme = Themes.current()
 		let label = MarqueeLabel.init(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 44), duration: 8.0, fadeLength: 10)
@@ -165,7 +171,7 @@ class TorrentDetailsController: ThemedUITableViewController {
             commentsLabel.text = manager.comment
             selectedLabel.text = Utils.getSizeText(size: manager.totalWanted) + " / " + Utils.getSizeText(size: manager.totalSize)
             completedLabel.text = Utils.getSizeText(size: manager.totalWantedDone)
-            progressLabel.text = String(format: "%.2f", Double(manager.totalWantedDone) / Double(manager.totalWanted) * 100) + "% / " + String(format: "%.2f", totalDownloadProgress * 100) + "%"
+            progressLabel.text = String(format: "%.2f", (manager.totalWanted == 0 ? 0 : Double(manager.totalWantedDone) / Double(manager.totalWanted) * 100)) + "% / " + String(format: "%.2f", totalDownloadProgress * 100) + "%"
             downloadedLabel.text = Utils.getSizeText(size: manager.totalDownload)
             uploadedLabel.text = Utils.getSizeText(size: manager.totalUpload)
             seedersLabel.text = String(manager.numSeeds)
