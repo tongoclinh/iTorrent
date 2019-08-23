@@ -14,7 +14,6 @@
 		7C1EBD0421E4B64B00EAAF55 /* TableHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1EBD0321E4B64B00EAAF55 /* TableHeaderView.swift */; };
 		7C1EBD0721E4BA6000EAAF55 /* TableHeaderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7C1EBD0621E4BA6000EAAF55 /* TableHeaderView.xib */; };
 		7C27A16820B0B9040065238C /* Version.ver in Resources */ = {isa = PBXBuildFile; fileRef = 7C27A16720B0B9040065238C /* Version.ver */; };
-		7C27A1A420B223630065238C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7C27A1A320B223630065238C /* GoogleService-Info.plist */; };
 		7C3C693820A754FB0023396C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C3C693620A754FB0023396C /* Main.storyboard */; };
 		7C3C693A20A754FD0023396C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C3C693920A754FD0023396C /* Assets.xcassets */; };
 		7C3C693D20A754FD0023396C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C3C693B20A754FD0023396C /* LaunchScreen.storyboard */; };
@@ -87,7 +86,6 @@
 		7C1EBD0321E4B64B00EAAF55 /* TableHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableHeaderView.swift; sourceTree = "<group>"; };
 		7C1EBD0621E4BA6000EAAF55 /* TableHeaderView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TableHeaderView.xib; sourceTree = "<group>"; };
 		7C27A16720B0B9040065238C /* Version.ver */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Version.ver; sourceTree = "<group>"; };
-		7C27A1A320B223630065238C /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		7C3C692F20A754FB0023396C /* iTorrent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iTorrent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C3C693720A754FB0023396C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C3C693920A754FD0023396C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -315,7 +313,6 @@
 		7CF99DC420B3636D00E5BF3A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				7C27A1A320B223630065238C /* GoogleService-Info.plist */,
 				7C27A16720B0B9040065238C /* Version.ver */,
 				7CF522ED20AF7B0200D319E6 /* 3.wav */,
 				7C802D01212B3B630031C19F /* Localizable.strings */,
@@ -393,7 +390,6 @@
 			files = (
 				7CF522EE20AF7B0300D319E6 /* 3.wav in Resources */,
 				7C1EBD0721E4BA6000EAAF55 /* TableHeaderView.xib in Resources */,
-				7C27A1A420B223630065238C /* GoogleService-Info.plist in Resources */,
 				7C0D2F1D20F77F7100B7FBC6 /* FileManagerTitleView.xib in Resources */,
 				7C27A16820B0B9040065238C /* Version.ver in Resources */,
 				7C3C693D20A754FD0023396C /* LaunchScreen.storyboard in Resources */,
